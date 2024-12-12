@@ -3,7 +3,7 @@ import logging
 from azure.storage.blob import ContainerClient
 import os
 
-app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+app = func.FunctionApp()
 
 IN_CONTAINER = "input-container"
 OUT_CONTAINER = "output-container"
