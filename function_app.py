@@ -2,23 +2,25 @@ import azure.functions as func
 import logging
 from azure.storage.blob import ContainerClient
 import os
+from azure.identity import DefaultAzureCredential
+
+creds = DefaultAzureCredential()
 
 app = func.FunctionApp()
 
-IN_CONTAINER = "input-container"
-OUT_CONTAINER = "output-container"
-
 in_container_client = ContainerClient(
-    account_url=os.environ["temp_SAS"],
-    container_name = IN_CONTAINER,
+    account_url=os.environ["source_connection__blobServiceUri"],
+    container_name = os.environ["source_container"],
+    credential=creds
     )
 out_container_client = ContainerClient(
-    account_url=os.environ["permanat_SAS"],
-    container_name = OUT_CONTAINER,
+    account_url=os.environ["dest_connection__blobServiceUri"],
+    container_name = os.environ["dest_container"],
+    credential=creds
     )
 
-@app.blob_trigger(arg_name="inputblob", path=IN_CONTAINER,
-                               connection="temporarysource_STORAGE")
+@app.blob_trigger(arg_name="inputblob", path=os.environ["source_container"],
+                               connection="source_connection")
 def blob_trigger(inputblob: func.InputStream):
     logging.info(f"Processing blob {inputblob.name}")
     path = inputblob.name[inputblob.name.index("/")+1:] # remove container from path
