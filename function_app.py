@@ -6,7 +6,7 @@ from azure.identity import DefaultAzureCredential
 
 creds = DefaultAzureCredential()
 
-app = func.FunctionApp()
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 in_container_client = ContainerClient(
     account_url=os.environ["source_connection__blobServiceUri"],
@@ -42,3 +42,14 @@ def blob_trigger(inputblob: func.InputStream):
     with in_container_client.get_blob_client(blob = path) as blob_client:
         blob_client.delete_blob()
     logging.info(f"deleted from source container {path}")
+    
+
+@app.route(route="health")
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('Checking source blob connection')
+    logging.info(list(in_container_client.list_blob_names()))
+
+    logging.info('Checking dest blob connection')
+    logging.info(list(out_container_client.list_blob_names()))
+
+    return func.HttpResponse(f"Triggered Successfully",status_code=200)
